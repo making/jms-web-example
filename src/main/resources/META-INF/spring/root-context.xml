@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+
+    <bean
+        class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:jndi.properties</value>
+            </list>
+        </property>
+    </bean>
+    
+    <bean id="jndiTemplate" class="org.springframework.jndi.JndiTemplate">
+        <property name="environment">
+            <props>
+                <prop key="java.naming.factory.initial">${java.naming.factory.initial}</prop>
+                <prop key="java.naming.factory.url.pkgs">${java.naming.factory.url.pkgs}</prop>
+                <prop key="java.naming.provider.url">${java.naming.provider.url}</prop>
+                <prop key="java.naming.security.principal">${java.naming.security.principal}</prop>
+                <prop key="java.naming.security.credentials">${java.naming.security.credentials}</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="jndiQueueConnectionFactory" class="org.springframework.jndi.JndiObjectFactoryBean">
+        <property name="jndiName" value="${queue.connection.factory.jndi.name}" />
+        <property name="jndiTemplate" ref="jndiTemplate" />
+    </bean>
+
+    <bean id="queueConnectionFactory"
+        class="org.springframework.jms.connection.CachingConnectionFactory">
+        <property name="targetConnectionFactory" ref="jndiQueueConnectionFactory" />
+        <property name="sessionCacheSize" value="1" />
+    </bean>
+
+    <bean id="queueDestination" class="org.springframework.jndi.JndiObjectFactoryBean">
+        <property name="jndiName" value="${queue.destination.jndi.name}" />
+        <property name="jndiTemplate" ref="jndiTemplate" />
+    </bean>
+
+    <bean id="destinationResolver"
+        class="org.springframework.jms.support.destination.JndiDestinationResolver">
+        <property name="cache" value="true" />
+        <property name="fallbackToDynamicDestination" value="false" />
+    </bean>
+
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="queueConnectionFactory" />
+        <property name="destinationResolver" ref="destinationResolver" />
+        <property name="defaultDestination" ref="queueDestination" />
+        <property name="pubSubDomain" value="false" />
+        <property name="sessionTransacted" value="true" />
+        <property name="receiveTimeout" value="1000" />
+    </bean>
+</beans>
