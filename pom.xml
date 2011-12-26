@@ -209,7 +209,7 @@
                 <artifactId>maven-eclipse-plugin</artifactId>
                 <configuration>
                     <wtpversion>1.5</wtpversion>
-                    <wtpContextName>/</wtpContextName>
+                    <wtpContextName>/jms-web-example</wtpContextName>
                     <downloadSources>true</downloadSources>
                 </configuration>
             </plugin>
